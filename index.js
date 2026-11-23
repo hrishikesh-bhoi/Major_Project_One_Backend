@@ -77,6 +77,67 @@ app.get("/api/books/:bookId", async (req, res) => {
     }
 });
 
+// Get all category from database
+async function readAllCategories() {
+    try {
+        const categories = await Book.distinct("category");
+        return categories;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Get books by category
+async function readBooksByCategory(categoryId) {
+    try {
+        const books = await Book.find({ category: categoryId });
+        return books;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// GET API to fetch books by category
+app.get("/api/categories/:categoryId", async (req, res) => {
+    try {
+        const books = await readBooksByCategory(req.params.categoryId);
+
+        if (books.length !== 0) {
+            res.status(200).json({
+                message: "Books fetched successfully by category.",
+                data: { books: books }
+            });
+        } else {
+            res.status(404).json({
+                message: "No books found in this category."
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching books by category.",
+            error: error.message
+        });
+    }
+});
+
+// Get api to fetch all categories
+app.get("/api/categories", async(req, res) => {
+    try {
+        const categories = await readAllCategories();
+
+        if(categories.length !== 0) {
+            res.status(200).json({message: "Categories fetched successfully.", data: {
+                categories: categories
+            }});
+        } else {
+            res.status(404).json({message: "No Categories found."})
+        }
+        
+    } catch (error) {
+        res.status(500).json({message: "Error fecthing categories.", error: error.message})
+    }
+})
+
 // server
 const PORT = 5000;
 app.listen(PORT, () => {

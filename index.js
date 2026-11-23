@@ -138,6 +138,64 @@ app.get("/api/categories", async(req, res) => {
     }
 })
 
+// Create a new book in the database
+async function createBook(newBook) {
+    try {
+
+        const book = new Book(newBook);
+        const savedBook = await book.save();
+        return savedBook;
+        
+    } catch (error) {
+        throw error;
+    }
+}
+
+// POST API to create a new Book
+app.post("/api/books", async (req, res) => {
+    try {
+
+        const newBook = await createBook(req.body);
+        res.status(201).json({message: "Book added successfully.", data: {
+            book: newBook
+        }
+    });
+        
+    } catch (error) {
+        res.status(500).json({message: "Error adding Book.", error: error.message})
+    }
+});
+
+// Create multiple books in the database
+async function createMultipleBooks(books) {
+    try {
+        const savedBooks = await Book.insertMany(books);
+        return savedBooks;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// POST API to create multiple books
+app.post("/api/books/bulk", async (req, res) => {
+    try {
+        const books = await createMultipleBooks(req.body);
+
+        res.status(201).json({
+            message: "Books added successfully.",
+            data: {
+                books: books
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error adding books.",
+            error: error.message
+        });
+    }
+});
+
 // server
 const PORT = 5000;
 app.listen(PORT, () => {

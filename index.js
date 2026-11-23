@@ -48,6 +48,35 @@ app.get("/api/books", async (req, res) => {
     }
 })
 
+// Get a book by ID from the database
+async function readBookById(bookId) {
+    try {
+        const book = await Book.findById(bookId);
+        return book;
+        
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Get api to fetch a book by ID
+app.get("/api/books/:bookId", async (req, res) => {
+    try {
+        const book = await readBookById(req.params.bookId)
+
+        if(book) {
+            res.status(200).json({message: "Book fetched successfully.", data: {
+                book: book
+            }});
+        } else {
+            res.status(404).json({message:"Book not found."})
+        }
+        
+    } catch (error) {
+        res.status(500).json({message: "Error fetching book.", error: error.message})
+    }
+});
+
 // server
 const PORT = 5000;
 app.listen(PORT, () => {

@@ -196,6 +196,77 @@ app.post("/api/books/bulk", async (req, res) => {
     }
 });
 
+// Get a book by slug from the database
+async function readBookBySlug(slug) {
+    try {
+        const book = await Book.findOne({ slug : slug });
+        return book;
+        
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Get API to fetch a book by slug
+app.get("/api/books/slug/:slug", async (req, res) => {
+    try {
+
+        const book = await readBookBySlug(req.params.slug);
+
+        if(book) {
+            res.status(200).json({message: "Book fetched successfully.", data: {
+                book : book
+            }});
+        } else {
+            res.status(404).json({message: "Book not found."});
+        }
+        
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching book.", error: error.message})
+    }
+});
+
+// Update book description
+async function updateBookDescription(slug, description) {
+    try {
+        const updatedBook = await Book.findOneAndUpdate(
+            { slug: slug },
+            { description: description },
+            { new: true }
+        );
+
+        return updatedBook;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// PATCH API to update book description
+app.patch("/api/books/slug/:slug/description", async (req, res) => {
+    try {
+        const updatedBook = await updateBookDescription(
+            req.params.slug,
+            req.body.description
+        );
+
+        if (updatedBook) {
+            res.status(200).json({
+                message: "Book description updated successfully.",
+                data: { book: updatedBook }
+            });
+        } else {
+            res.status(404).json({
+                message: "Book not found."
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: "Error updating book description.",
+            error: error.message
+        });
+    }
+});
+
 // server
 const PORT = 5000;
 app.listen(PORT, () => {

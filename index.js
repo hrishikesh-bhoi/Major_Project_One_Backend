@@ -4,6 +4,7 @@ const cors = require("cors");
 
 const { initializeDatabase } = require("./db/db.connect");
 const Book = require("./models/book.models");
+const Category = require("./models/category.models")
 
 app.use(cors())
 
@@ -78,14 +79,18 @@ app.get("/api/books/:bookId", async (req, res) => {
 });
 
 // Get all category from database
+
 async function readAllCategories() {
     try {
-        const categories = await Book.distinct("category");
-        return categories;
+        const categories = await Category.find().select("name -_id");
+
+        return categories.map((category) => category.name);
+
     } catch (error) {
         throw error;
     }
 }
+
 
 // Get books by category
 async function readBooksByCategory(categoryId) {
@@ -266,6 +271,36 @@ app.patch("/api/books/slug/:slug/description", async (req, res) => {
         });
     }
 });
+
+// Create multiple categories
+async function createMultipleCategories(categories) {
+    try {
+
+        const savedCategories = await Category.insertMany(categories);
+        return savedCategories;
+        
+    } catch (error) {
+        throw error;
+    }
+}
+
+// POST API to add multiple categories
+app.post("/api/categories/bulk", async (req, res) => {
+    try {
+
+        const categories = await createMultipleCategories(req.body);
+
+        res.status(201).json({
+            message: "Categories added successfully.",
+            data: {
+                categories: categories
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({message: "Error adding category.",error: error.message})
+    }
+})
 
 // server
 const PORT = process.env.PORT || 5000;
